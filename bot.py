@@ -170,7 +170,8 @@ async def busTimer(context):
     forecast = [i for i in forecastsId if i['stname'] == args['route']['stname']]
 
     if len(forecast) == 0:
-        await context.bot.send_message(chat_id=job.chat_id, text=f"Автобус приехал")
+        await context.bot.send_message(chat_id=job.chat_id, text=f"Автобус приехал", 
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Главное меню", callback_data="start")]]))
         remove_job_if_exists(str(job.chat_id), context)
         return
     else:
