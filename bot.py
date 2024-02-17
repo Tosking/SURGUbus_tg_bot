@@ -57,7 +57,6 @@ async def deleteFavorite(context, update, id):
 
 async def deleteList(update, context, listNum):
     favList = dbconnect.get_routes_by_user(update.effective_message.chat_id)
-    print(favList)
     start = listNum * 6
     end = start + 6
     keyboard = [[],[],[],[],[],[], [], [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
@@ -68,7 +67,6 @@ async def deleteList(update, context, listNum):
     else:
         keyboard[3].append(InlineKeyboardButton(">", callback_data=f"delfav_{listNum + 1}"))
     for i in range(start, end):
-        print(i, end)
         keyboard[i % 6 // 1].append(InlineKeyboardButton(f"❌{favList[i][2]} - {favList[i][3]} - {favList[i][4]}", callback_data=f"df_{favList[i][0]}"))
 
 
@@ -96,7 +94,6 @@ async def changeDir(query, context, update):
     notDir = query.data.split("_")[1]
     number = query.message.text.split(" ")[2][1::]
     stop = query.message.text.split("\"")[1]
-    print(notDir, number, stop)
     route, routeId = await findClosestBus(number, stop, notDir)
     if route == None:
         await context.bot.send_message(chat_id=update.effective_chat.id, 
@@ -117,7 +114,6 @@ async def changeDir(query, context, update):
 async def startFavorite(query, context, update):
     favDb = dbconnect.get_routes_by_id(query.data.split("_")[1])[0]
     number, stname, direction = favDb[2], favDb[3], favDb[4]
-    print(favDb)
     route, routeId = await findClosestBus(number, stname, direction=direction)
     if route == None:
         await context.bot.send_message(chat_id=update.effective_chat.id, 
@@ -138,7 +134,6 @@ async def startFavorite(query, context, update):
 
 async def favorite(update, context, listNum):
     favList = dbconnect.get_routes_by_user(update.effective_message.chat_id)
-    print(favList)
     start = listNum * 6
     end = start + 6
     keyboard = [[],[],[],[],[],[], [],[InlineKeyboardButton("Удалить из избранного", callback_data="delfav_0")], 
@@ -150,7 +145,6 @@ async def favorite(update, context, listNum):
     else:
         keyboard[3].append(InlineKeyboardButton(">", callback_data=f"favorite_{listNum + 1}"))
     for i in range(start, end):
-        print(i, end)
         keyboard[i % 6 // 1].append(InlineKeyboardButton(f"{favList[i][2]} - {favList[i][3]} - {favList[i][4]}", callback_data=f"s_{favList[i][0]}"))
 
 
@@ -167,7 +161,6 @@ async def add_favorite(message, context, update):
     number = message.split(" ")[2][1::]
     stop = message.split("\"")[1]
     direction = message.split(":")[1].split("\n")[0][1::]
-    print(direction)
     if dbconnect.add_route(update.effective_message.chat_id, number, stop, direction):
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text=f"Маршрут автобус №{number} и остановка {stop} были добавленны в избранное")
     else:
@@ -193,11 +186,9 @@ async def findClosestBus(bus_number, bus_stop, notDir=None, direction=None):
     route = None
     routeId = None
     routesIds = requestInfo.getIdsOfRoute(bus_number)
-    print(routesIds)
     for r in routesIds:
         forecastsId = requestInfo.getForecasts(str(r))
         for forecast in forecastsId:
-            print(similarity_percentage(bus_stop.lower(), forecast["stname"].lower()), bus_stop, forecast["stname"], forecast['stdescr'])
             if similarity_percentage(bus_stop.lower(), forecast["stname"].lower()) >= 80 and notDir != forecast['stdescr'] and (direction == None or direction == forecast['stdescr']):
                 if route == None or (forecast['arrt'] < route['arrt'] and forecast['arrt'] >= 60):
                     route = forecast
@@ -207,7 +198,6 @@ async def findClosestBus(bus_number, bus_stop, notDir=None, direction=None):
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
     current_jobs = context.job_queue.get_jobs_by_name(name)
-    print(current_jobs, name)
 
     if not current_jobs:
 
@@ -238,13 +228,11 @@ async def busTimer(context):
         if minutes != lastMinutes and minutes % 5 == 0:
             await context.bot.send_message(chat_id=job.chat_id, text=f"Автобус приедет через {minutes} мин")
     else:
-        print(minutes, lastMinutes)
         if minutes != lastMinutes:
             await context.bot.send_message(chat_id=job.chat_id, text=f"Автобус приедет через {minutes} мин")
     for i in busTimers:
         if user == i['user']:
             i['timer'] = timer
-    print(forecast)
     application.job_queue.run_once(busTimer, 20, chat_id=job.chat_id, name=str(job.chat_id), data={'route': args['route'], 'routeId' : args['routeId'], 'lastTime' :  forecast['arrt']})
 
 async def notify(update, context):
@@ -297,7 +285,6 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if(not routesIds):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Автобус не обнаружен")
         return
-    print(routesIds)
     for i in routesIds:
         response += f'Автобус с айди: {i} ---------\n'
         forecasts = requestInfo.getForecasts(str(i))
