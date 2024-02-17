@@ -42,6 +42,24 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await startFavorite(query, context, update)
     elif(query.data.startswith("n")):
         await changeDir(query, context, update)
+    elif(query.data.startswith("printstop")):
+        await printStops(query, context, update)
+
+async def printStops(query, context, update):
+    number = query.data.split("_")[1]
+    stops = []
+    result = "Список возможных остановок:\n\n----------------\n\n"
+    routesIds = requestInfo.getIdsOfRoute(number)
+    for r in routesIds:
+        forecastsId = requestInfo.getForecasts(str(r))
+        for forecast in forecastsId:
+            if not forecast['stname'] in stops:
+                stops.append(forecast['stname'])
+    for stop in stops:
+        result += f"{stop}\n"
+    result += "\n----------------\n\nВведите вашу остановку из списка:"
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=result)
 
 async def changeDir(query, context, update):
     notDir = query.data.split("_")[1]
@@ -120,7 +138,8 @@ async def add_favorite(message, context, update):
 
 async def get_bus_number(update, context):
     context.user_data['bus_number'] = update.message.text
-    await update.message.reply_text('Теперь отправьте название остановки. Например "Магазин Москва":')
+    await update.message.reply_text('Теперь отправьте название остановки:', 
+    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Вывести список остановок", callback_data=f"printstop_{update.message.text}")]]))
     return AWAITING_BUS_STOP
 
 # Обработка ввода названия остановки
