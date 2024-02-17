@@ -7,6 +7,7 @@ import os
 import json
 import requestInfo
 import dbconnect
+import stats
 import zlib
 import base64
 
@@ -15,13 +16,13 @@ token = os.getenv("TOKEN")
 application = ApplicationBuilder().token(token).build()
 
 AWAITING_BUS_NUMBER, AWAITING_BUS_STOP = range(2)
-busTimers = []
 
 def similarity_percentage(s1, s2):
     matcher = SequenceMatcher(None, s1, s2)
     return matcher.ratio() * 100
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    stats.addButtonClicks()
     query = update.callback_query
     await query.answer()
     if(query.data == "notify"):
@@ -107,6 +108,8 @@ async def changeDir(query, context, update):
         [InlineKeyboardButton("Главное меню", callback_data="start")]
     ]
 
+    stats.addNotifyings()
+
     await context.bot.send_message(chat_id=update.effective_chat.id, 
     text=f"Ближайший автобус №{number} , направляющийся: {route['stdescr']}\nприбудет к остановке \"{route['stname']}\" через {route['arrt'] // 60} мин.",
     reply_markup=InlineKeyboardMarkup(keyboard))
@@ -126,6 +129,8 @@ async def startFavorite(query, context, update):
         [InlineKeyboardButton("Отменить слежение", callback_data="remove_notify")],
         [InlineKeyboardButton("Главное меню", callback_data="start")]
     ]
+
+    stats.addNotifyings()
 
     await context.bot.send_message(chat_id=update.effective_chat.id, 
     text=f"Ближайший автобус №{number} , направляющийся: {route['stdescr']}\nприбудет к остановке \"{stname}\" через {route['arrt'] // 60} мин.",
@@ -252,6 +257,7 @@ async def notify(update, context):
             [InlineKeyboardButton("Главное меню", callback_data="start")]
         ]
 
+    stats.addNotifyings()
 
     await context.bot.send_message(chat_id=update.effective_chat.id, 
     text=f"Ближайший автобус №{context.user_data['bus_number']} , направляющийся: {route['stdescr']}\nприбудет к остановке \"{route['stname']}\" через {route['arrt'] // 60} мин.",

@@ -1,3 +1,4 @@
 .env
 bus.db
 __pycache__
+stats.json
