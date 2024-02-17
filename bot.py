@@ -110,7 +110,7 @@ async def favorite(update, context, listNum):
     print(favList)
     start = listNum * 6
     end = start + 6
-    keyboard = [[],[],[], [], [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
+    keyboard = [[],[],[],[],[],[], [], [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
     if listNum > 0:
         keyboard[3].append(InlineKeyboardButton("<", callback_data=f"favorite_{listNum - 1}"))
     if len(favList) < end:
@@ -119,7 +119,7 @@ async def favorite(update, context, listNum):
         keyboard[3].append(InlineKeyboardButton(">", callback_data=f"favorite_{listNum + 1}"))
     for i in range(start, end):
         print(i, end)
-        keyboard[i % 6 // 2].append(InlineKeyboardButton(f"{favList[i][2]} - {favList[i][3]} - {favList[i][3]}", callback_data=f"s_{favList[i][0]}"))
+        keyboard[i % 6 // 1].append(InlineKeyboardButton(f"{favList[i][2]} - {favList[i][3]} - {favList[i][4]}", callback_data=f"s_{favList[i][0]}"))
 
 
     await context.bot.send_message(chat_id=update.effective_chat.id, 
@@ -129,12 +129,17 @@ async def favorite(update, context, listNum):
     
 
 async def add_favorite(message, context, update):
+    favList = dbconnect.get_routes_by_user(update.effective_message.chat_id)
+    if len(favList) > 100:
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text=f"Достигнут лимит избранных маршрутов")
     number = message.split(" ")[2][1::]
     stop = message.split("\"")[1]
     direction = message.split(":")[1].split("\n")[0][1::]
     print(direction)
-    dbconnect.add_route(update.effective_message.chat_id, number, stop, direction)
-    await context.bot.send_message(chat_id=update.effective_message.chat_id, text=f"Маршрут автобус №{number} и остановка {stop} были добавленны в избранное")
+    if dbconnect.add_route(update.effective_message.chat_id, number, stop, direction):
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text=f"Маршрут автобус №{number} и остановка {stop} были добавленны в избранное")
+    else:
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text=f"Данный маршрут уже находится в избранном")
 
 async def get_bus_number(update, context):
     context.user_data['bus_number'] = update.message.text

@@ -45,11 +45,17 @@ def add_user(user_id):
 def add_route(user_id, bus_number, bus_stop, direction):
     conn = sqlite3.connect(dbName)
     cursor = conn.cursor()
+    cursor.execute("SELECT * FROM routes WHERE bus_number=? AND bus_stop=? AND direction=?", (bus_number, bus_stop, direction))
+    existing_route = cursor.fetchone()
 
-    cursor.execute("INSERT INTO routes (user_id, bus_number, bus_stop, direction) VALUES (?, ?, ?, ?)", (user_id, bus_number, bus_stop, direction))
+    if existing_route is None:
+        cursor.execute("INSERT INTO routes (user_id, bus_number, bus_stop, direction) VALUES (?, ?, ?, ?)", (user_id, bus_number, bus_stop, direction))
+    else:
+        return False
 
     conn.commit()
     conn.close()
+    return True
 
 def get_routes_by_user(user_id):
     conn = sqlite3.connect(dbName)
