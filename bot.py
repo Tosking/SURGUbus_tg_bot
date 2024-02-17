@@ -38,12 +38,43 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await startMenu(update, context)
     elif(query.data.split("_")[0] == "favorite"):
         await favorite(update, context, int(query.data.split("_")[1]))
+    elif(query.data.split("_")[0] == "delfav"):
+        await deleteList(update, context, int(query.data.split("_")[1]))
+    elif(query.data.split("_")[0] == "df"):
+        await deleteFavorite(context, update, query.data.split("_")[1])
     elif(query.data.startswith("s")):
         await startFavorite(query, context, update)
     elif(query.data.startswith("n")):
         await changeDir(query, context, update)
     elif(query.data.startswith("printstop")):
         await printStops(query, context, update)
+
+async def deleteFavorite(context, update, id):
+    dbconnect.delete_route(id)
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
+    text=f"Маршрут удален из избранного",
+    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Главное меню", callback_data="start")]]))
+
+async def deleteList(update, context, listNum):
+    favList = dbconnect.get_routes_by_user(update.effective_message.chat_id)
+    print(favList)
+    start = listNum * 6
+    end = start + 6
+    keyboard = [[],[],[],[],[],[], [], [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
+    if listNum > 0:
+        keyboard[3].append(InlineKeyboardButton("<", callback_data=f"delfav_{listNum - 1}"))
+    if len(favList) < end:
+        end = len(favList)
+    else:
+        keyboard[3].append(InlineKeyboardButton(">", callback_data=f"delfav_{listNum + 1}"))
+    for i in range(start, end):
+        print(i, end)
+        keyboard[i % 6 // 1].append(InlineKeyboardButton(f"❌{favList[i][2]} - {favList[i][3]} - {favList[i][4]}", callback_data=f"df_{favList[i][0]}"))
+
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
+    text=f"Выберите какой избранный маршрут удалить",
+    reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def printStops(query, context, update):
     number = query.data.split("_")[1]
@@ -110,7 +141,8 @@ async def favorite(update, context, listNum):
     print(favList)
     start = listNum * 6
     end = start + 6
-    keyboard = [[],[],[],[],[],[], [], [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
+    keyboard = [[],[],[],[],[],[], [],[InlineKeyboardButton("Удалить из избранного", callback_data="delfav_0")], 
+    [InlineKeyboardButton("Вернуться на главную страницу", callback_data=f"start")]]
     if listNum > 0:
         keyboard[3].append(InlineKeyboardButton("<", callback_data=f"favorite_{listNum - 1}"))
     if len(favList) < end:

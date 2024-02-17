@@ -57,6 +57,14 @@ def add_route(user_id, bus_number, bus_stop, direction):
     conn.close()
     return True
 
+def delete_route(id):
+    conn = sqlite3.connect(dbName)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM routes WHERE id=?", (id))
+
+    conn.commit()
+    conn.close()
+
 def get_routes_by_user(user_id):
     conn = sqlite3.connect(dbName)
     cursor = conn.cursor()
