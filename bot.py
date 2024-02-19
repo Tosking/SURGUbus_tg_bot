@@ -235,9 +235,6 @@ async def busTimer(context):
     else:
         if minutes != lastMinutes:
             await context.bot.send_message(chat_id=job.chat_id, text=f"Автобус приедет через {minutes} мин")
-    for i in busTimers:
-        if user == i['user']:
-            i['timer'] = timer
     application.job_queue.run_once(busTimer, 20, chat_id=job.chat_id, name=str(job.chat_id), data={'route': args['route'], 'routeId' : args['routeId'], 'lastTime' :  forecast['arrt']})
 
 async def notify(update, context):
